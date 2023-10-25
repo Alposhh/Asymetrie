@@ -15,132 +15,100 @@ setwd("/home/sdv/m1isdd/gbalamtekin/Documents/Projet_asymetrie_Biostat/")
 ```
 
 ```{r}
-dfb1AC6 <- read.table("DATA/Dmax/Asymetry/1AC6_AB_distanceMax_backbone_byRes.txt", header = TRUE)
-df1AC6 <- read.table("DATA/Dmax/Asymetry/1AC6_AB_distanceMax_byRes.txt", header = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("ALA", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("ALA", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("GLY", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("GLY", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("ARG", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("ARG", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("GLU", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("GLU", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("TYR", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("TYR", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("LYS", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("LYS", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("ASP", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("ASP", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("CYS", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("CYS", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("PHE", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("PHE", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("LEU", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("LEU", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("ILE", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("ILE", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("VAL", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("VAL", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("PRO", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("PRO", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("SER", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("SER", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("ASN", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("ASN", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("GLN", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("GLN", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AC6$distance_max_interChain[grepl("THR", dfb1AC6$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AC6$distance_max_interChain[grepl("THR", df1AC6$atom_nm)], breaks = 20, col = "red", add = TRUE)
-```
-
-```{r}
-dfb1AIZ <- read.table("DATA/Dmax/Asymetry/1AIZ_AB_distanceMax_backbone_byRes.txt", header = TRUE)
-df1AIZ <- read.table("DATA/Dmax/Asymetry/1AIZ_AB_distanceMax_byRes.txt", header = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("ALA", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("ALA", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("GLY", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("GLY", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("ARG", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("ARG", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("GLU", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("GLU", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("TYR", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("TYR", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("LYS", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("LYS", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("ASP", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("ASP", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("CYS", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("CYS", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("PHE", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("PHE", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("LEU", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("LEU", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("ILE", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("ILE", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("VAL", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("VAL", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("PRO", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("PRO", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("SER", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("SER", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("ASN", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("ASN", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("GLN", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("GLN", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-
-hist(dfb1AIZ$distance_max_interChain[grepl("THR", dfb1AIZ$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
-hist(df1AIZ$distance_max_interChain[grepl("THR", df1AIZ$atom_nm)], breaks = 20, col = "red", add = TRUE)
-```
-
-```{r}
 data <- read.table("DATA/Dmax/distMax_alldimers.txt", header = TRUE)
+datab <- read.table("DATA/Dmax/distMax_alldimers_backbone.txt", header = TRUE) 
 
-noms_des_variables <- colnames(data)
+par(mfrow=c(1, 2))
 
-for (variable in noms_des_variables) {
-  if (variable != "distance_max_interChain") {
-    test_result <- cor.test(data[,"distance_max_interChain"], data[,variable], method = "pearson")
-    if ((test_result$p.value < 0.05) & (test_result$estimate > 0.5)) {
-      cat("Variable:", variable, "\n")
-      cat("Correlation Estimate:", test_result$estimate, "\n")
-      cat("P-Value:", test_result$p.value, "\n")
-    }
-  }
-}
+hist(datab$distance_max_interChain[grepl("ALA", datab$atom_nm)], xlim=c(0,5), ylim=c(0,4000), breaks = 5, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("ALA", data$atom_nm)], xlim=c(0,5), ylim=c(0,4000), breaks = 5, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("GLY", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("GLY", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("ARG", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("ARG", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("GLU", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("GLU", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("TYR", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("TYR", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("LYS", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("LYS", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("ASP", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("ASP", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("CYS", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("CYS", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("PHE", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("PHE", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("LEU", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("LEU", data$atom_nm)], breaks = 20, col = "red", add = TRUE)
+
+hist(datab$distance_max_interChain[grepl("ILE", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("ILE", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("VAL", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("VAL", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("PRO", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("PRO", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("SER", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("SER", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("ASN", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("ASN", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("GLN", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("GLN", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+
+hist(datab$distance_max_interChain[grepl("THR", datab$atom_nm)], breaks = 20, col = "blue", main = "Superposed Histograms")
+hist(data$distance_max_interChain[grepl("THR", data$atom_nm)], breaks = 20, col = "red", add = FALSE)
+```
+
+```{r}
+x <- data$distance_max_interChain[grepl("ALA", data$atom_nm)]
+
+y <- datab$distance_max_interChain[grepl("ALA", datab$atom_nm)]
+
+xdf <- as.data.frame(x)
+ydf <-  as.data.frame(y)
+
+t.test(xdf,ydf)
+
+#faire globale
+
+```
+
+```{r}
+
+# Convertir la variable "interior" en numérique (0/1)
+data$first_chain <- ifelse(data$type_interface_FirstChain == "surface", 1, 0)
+
+# Convertir la variable "surface" en numérique (0/1)
+data$second_chain <- ifelse(data$type_interface_SecondChain == "surface", 1, 0)
+
+data$combined_chain <- ifelse(data$first_chain == 1 & data$second_chain == 1, 1, 0)
+
+data$combined_chain_0 <- ifelse(data$first_chain == 0 & data$second_chain == 0, 1, 0)
+
+data_cor_final <- data.frame(
+  distance_max_interChain = data$distance_max_interChain,
+  first_chain = data$first_chain,
+  second_chain = data$second_chain,
+  combined_chain = data$combined_chain,
+  combined_chain_0 = data$combined_chain_0
+)[grepl("ALA", data$atom_nm), ]
+
+t.test(data_cor_final$distance_max_interChain, data_cor_final$combined_chain)
+t.test(data_cor_final$distance_max_interChain, data_cor_final$combined_chain_0)
+
 
 ```
 
