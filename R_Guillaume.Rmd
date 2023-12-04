@@ -1,0 +1,277 @@
+---
+title: "Acd_Am-Dmax"
+author: "Balam"
+date: "2023-10-19"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+#setwd("/home/alper/Documents/Asymetrie/DATA/DMAX")
+#install.packages("ggplot2")
+#install.packages("dplyr")
+#install.packages("stringr")
+```
+
+```{r}
+data <- read.table("distMax_alldimers.txt", header = TRUE)
+datab <- read.table("distMax_alldimers_backbone.txt", header = TRUE)
+data$LogD <- log(data$distance_max_interChain)
+datab$LogD <- log(datab$distance_max_interChain)
+```
+
+
+```{r}
+# Liste des acides aminés spécifiques.
+acides_amines_specifiques <- c("GLY", "ALA", "ARG","PHE","GLU", "THR", "TYR", "ASN", "LYS", "SER", "ILE", "HIS", "CYS", "LEU", "ARG", "VAL", "ASP", "PRO", "GLN", "TRP")
+
+par(mfrow = c(2, 3))
+
+
+# Utilise une boucle for pour créer un histogramme pour chaque acide aminé 
+for (amino_acid in acides_amines_specifiques) {
+  subset_data <- data[grepl(paste0("_", amino_acid, "_"), data$atom_nm), ]
+  subset_datab <- datab[grepl(paste0("_", amino_acid, "_"), datab$atom_nm), ]
+  if (nrow(subset_data) > 0 & nrow(subset_datab) > 0) {
+    #hist_data <- hist(subset_data$distance_max_interChain, freq = NULL, 
+                      #xlim = c(0.1,5), ylim = c(0, max(hist_data$counts + 1)), breaks = 100,
+                      #col = "blue", main = paste("Histogram for", amino_acid, plot = TRUE))
+    #hist(subset_data$LogD, freq = NULL, 
+                      #xlim = c(0.1,5), ylim = c(0, max(hist_data$counts + 1)), breaks = 100,
+                      #col = "blue", main = paste("Histogram for", amino_acid, plot = TRUE))
+    hist(data$distance_max_interChain, breaks = 1000, xlim = c(0,1), xlab = "Dmax", main = "Globale" )
+    
+    hist(subset_data$distance_max_interChain, freq = NULL, 
+                      xlim = c(0,1), xlab = "Dmax", ylim = c(0,1000), breaks = 500,
+                      col = "blue", main = paste("Histogram for", amino_acid))
+    hist(subset_data$LogD, freq = NULL, 
+                      xlim = c(0,1), xlab = "log(Dmax)", ylim = c(0,110) , breaks = 500,
+                      col = "blue", main = paste("Histogram for", amino_acid))
+    
+    hist(datab$distance_max_interChain, breaks = 1000, xlim = c(0,1), xlab = "B_Dmax", main = "B_Globale" )
+    
+    hist(subset_datab$distance_max_interChain, freq = NULL, 
+                      xlim = c(0,1), xlab = "B_Dmax", ylim = c(0,1000), breaks = 500,
+                      col = "blue", main = paste("Histogram for", amino_acid))
+    hist(subset_datab$LogD, freq = NULL, 
+                      xlim = c(0,1), xlab = "log(B_Dmax)", ylim = c(0,110) , breaks = 500,
+                      col = "blue", main = paste("Histogram for", amino_acid))
+    
+    
+
+        #barplot(hist_data$counts, names.arg = hist_data$mids, col = "blue", xlim = c(0,5), ylim = c(0, 10000), main = paste("Barplot for", amino_acid), xlab = "Distance", ylab = "Frequency")
+    # Créer une courbe de densité
+    #density_data <- density(subset_data$distance_max_interChain)
+    
+    # Tracer la courbe de densité
+    #par(new = TRUE)
+    #plot(density_data, main = paste("Density Plot for", amino_acid), xlim = c(0.1,0.5), xlab = "Distance", ylab = "Density", col = "blue")
+  }
+}
+```
+
+
+```{r}
+# Création du dataframe vide avec les noms de colonnes
+Comptage <- data.frame("inferieur_à_0.3" = NA, "entre_0.3_et_0.7" = NA, "entre_0.7_et_1" = NA, "superieur_à_1" = NA)
+
+# Comptage des occurrences
+Comptage$inferieur_à_0.3 <- sum(data$distance_max_interChain < 0.3)
+Comptage$entre_0.3_et_0.7 <- sum(data$distance_max_interChain > 0.3 & data$distance_max_interChain < 0.7)
+Comptage$entre_0.7_et_1 <- sum(data$distance_max_interChain > 0.7 & data$distance_max_interChain < 1)
+Comptage$superieur_à_1 <- sum(data$distance_max_interChain > 1)
+```
+
+```{r}
+seuil <- seq(0.1, 1, 0.1)
+
+# Initialize an empty vector to store counts
+cbs <- numeric(length(seuil))
+
+# Iterate over each value in seuil
+for (i in seq_along(seuil)) {
+  # Count elements greater than the current threshold
+  cbs[i] <- sum(data$distance_max_interChain > seuil[i])
+}
+
+# Plot the histogram with seuil on the x-axis
+plot(seuil, cbs, type = "h", lwd = 10, col = "blue", main = "Histogram of Counts", xlab = "seuil", ylab = "Count")
+
+
+
+```
+
+```{r}
+data$Asymetrie <- ifelse(data$distance_max_interChain > 0.3, "Asymetrique", "non Asymetrique")
+table(data$Asymetrie)
+```
+
+```{r}
+unique(data$name)
+test <- unique(data$name)
+
+```
+
+
+```{r}
+# Liste des acides aminés spécifiques que vous souhaitez inclure
+acides_amines_specifiques <- unique(sapply(strsplit(data$atom_nm, "_"), "[[", 2))
+
+# Créez une liste pour stocker les résultats
+resultats_t_test <- list()
+
+# Utilisez une boucle for pour effectuer un test t pour chaque acide aminé spécifique
+for (amino_acid in acides_amines_specifiques) {
+  x <- data$distance_max_interChain[grepl(paste0("_", amino_acid, "_"), data$atom_nm)]
+  y <- datab$distance_max_interChain[grepl(paste0("_", amino_acid, "_"), datab$atom_nm)]
+  xdf <- as.data.frame(x)
+  ydf <- as.data.frame(y)
+  
+  # Effectuez le test t et stockez le résultat dans la liste
+  resultats_t_test[[amino_acid]] <- t.test(xdf, ydf)
+}
+
+# Accédez aux résultats individuels en utilisant les noms des acides aminés comme clés
+for (amino_acid in acides_amines_specifiques) {
+  print(paste("Test t pour", amino_acid))
+  print(resultats_t_test[[amino_acid]])
+}
+
+```
+
+
+
+
+
+
+```{r}#
+
+# Convertir la variable "interior" en numérique (0/1)
+data$first_chain <- ifelse(data$type_interface_FirstChain == "surface", 1, 0)
+
+# Convertir la variable "surface" en numérique (0/1)
+data$second_chain <- ifelse(data$type_interface_SecondChain == "surface", 1, 0)
+
+data$combined_chain <- ifelse(data$first_chain == 1 & data$second_chain == 1, 1, 0)
+
+data$combined_chain_0 <- ifelse(data$first_chain == 0 & data$second_chain == 0, 1, 0)
+
+data_cor_final <- data.frame(
+  distance_max_interChain = data$distance_max_interChain,
+  first_chain = data$first_chain,
+  second_chain = data$second_chain,
+  combined_chain = data$combined_chain,
+  combined_chain_0 = data$combined_chain_0
+)[grepl("ALA", data$atom_nm), ]
+
+t.test(data_cor_final$distance_max_interChain, data_cor_final$combined_chain)
+t.test(data_cor_final$distance_max_interChain, data_cor_final$combined_chain_0)
+
+
+```
+
+```{r}#
+# Convertir la variable "interior" en numérique (0/1)
+datab$first_chain <- ifelse(data$type_interface_FirstChain == "surface", 1, 0)
+
+# Convertir la variable "surface" en numérique (0/1)
+datab$second_chain <- ifelse(data$type_interface_SecondChain == "surface", 1, 0)
+
+datab$combined_chain <- ifelse(data$first_chain == 1 & data$second_chain == 1, 1, 0)
+
+datab$combined_chain_0 <- ifelse(data$first_chain == 0 & data$second_chain == 0, 1, 0)
+
+datab_cor_final <- data.frame(
+  distance_max_interChain = datab$distance_max_interChain,
+  first_chain = datab$first_chain,
+  second_chain = datab$second_chain,
+  combined_chain = datab$combined_chain,
+  combined_chain_0 = datab$combined_chain_0
+)[grepl("ALA", datab$atom_nm), ]
+
+t.test(datab_cor_final$distance_max_interChain, datab_cor_final$combined_chain)
+t.test(datab_cor_final$distance_max_interChain, datab_cor_final$combined_chain_0)
+
+
+```
+
+```{r}
+unique(data$type_interface_FirstChain)
+unique(data$type_interface_SecondChain)
+```
+
+```{r}
+model_linear = lm(data$distance_max_interChain ~ data$type_interface_FirstChain, data = data)
+summary(model_linear)
+```
+
+```{r}
+library(ggplot2)
+par(mfrow = c(1, 3))
+ggplot(data, aes(x = type_interface_FirstChain, y = distance_max_interChain, group = 1)) + 
+  geom_line() + geom_point()
+ggplot(data, aes(x = type_interface_SecondChain, y = distance_max_interChain, group = 1)) + 
+  geom_line() + geom_point()
+ggplot(data, aes(x = zone_combiner, y = distance_max_interChain, group = 1)) + 
+  geom_line() + 
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+```{r}
+model_linearb = lm(datab$distance_max_interChain ~ datab$type_interface_SecondChain, data = datab)
+summary(model_linearb)
+```
+
+```{r}
+data$zone_combiner <- paste(data$type_interface_FirstChain, data$type_interface_SecondChain, sep = "-")
+```
+
+```{r}
+model_linearc = lm(data$distance_max_interChain ~ data$zone_combiner, data = data)
+summary(model_linearc)
+```
+
+```{r}
+# Créer une liste pour stocker les sous-dataframes pour chaque acide aminé
+liste_acides_amines <- list()
+
+# Parcourir la liste des acides aminés spécifiques
+for (acide in acides_amines_specifiques) {
+  # Utiliser grepl pour filtrer les lignes pour l'acide aminé actuel
+  sous_dataframe <- data[grepl(acide, data$atom_nm), ]
+  
+  # Stocker le sous-dataframe dans la liste
+  liste_acides_amines[[acide]] <- sous_dataframe
+  
+  # Sauvegarder le sous-dataframe dans un fichier CSV
+  write.csv(sous_dataframe, file = paste0("acide_", acide, ".csv"), row.names = FALSE)
+}
+
+# Vous pouvez maintenant accéder à chaque sous-dataframe par son nom (par exemple, liste_acides_amines$GLY)
+
+```
+
+```{r}
+model_linearc = lm(liste_acides_amines$GLY$distance_max_interChain ~ liste_acides_amines$GLY$zone_combiner, data = liste_acides_amines$GLY)
+summary(model_linearc)
+```
+
+```{r}
+summary(aov(data$distance_max_interChain~data$type_interface_FirstChain*data$type_interface_SecondChain))
+```
+
+```{r}
+summary(aov(liste_acides_amines$PHE$distance_max_interChain ~ liste_acides_amines$PHE$type_interface_FirstChain * liste_acides_amines$PHE$type_interface_SecondChain))
+
+```
+
+
