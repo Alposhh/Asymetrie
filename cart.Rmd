@@ -1,0 +1,137 @@
+---
+title: "classification_cart"
+author: "balam"
+date: "2024-01-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Hmmsa <- read.csv("/home/alper/Documents/Asymetrie/DATA/final_result.csv")
+
+# Remplacer les cellules vides par NA dans un dataframe existant
+Hmmsa[Hmmsa == ""] <- NA
+Hmmsa[Hmmsa == "-"] <- NA
+
+clean_hm <- na.omit(Hmmsa)
+```
+
+```{r}
+helix <- c("A","a","V","W")
+beta <- c("L","M","N","P","X")
+loop <- c("B","C","D","E","F","G","H","I","J","K","O","Q","R","S","T","U","Y","Z")
+
+# Fonction pour déterminer la valeur de la colonne 9
+get_col9_value <- function(val1, val2) {
+  if (val1 == val2) {
+    return(0)
+  } else {
+    vecteur1 <- ifelse(val1 %in% helix, "helix", ifelse(val1 %in% beta, "beta", "loop"))
+    vecteur2 <- ifelse(val2 %in% helix, "helix", ifelse(val2 %in% beta, "beta", "loop"))
+    
+    if (vecteur1 != vecteur2) {
+      return(2)
+    } else {
+      return(1)
+    }
+  }
+}
+
+# Appliquer la fonction au dataframe
+clean_hm$Chgm <- mapply(get_col9_value, clean_hm$first_chain_assym, clean_hm$second_chain_assym)
+
+table(clean_hm$Chgm)
+
+# Calcul de la moyenne pour le changement de structure 
+mean(subset(clean_hm, Chgm == 2)$distance_max_interChain)
+mean(subset(clean_hm, Chgm == 1)$distance_max_interChain)
+mean(subset(clean_hm, Chgm == 0)$distance_max_interChain)
+
+```
+
+```{r}
+#pour cart logistique
+clean_hm$logi_dist <- ifelse(clean_hm$distance_max_interChain < 0.3, 0, 1)
+table(clean_hm$logi_dist)
+```
+
+```{r}
+clean_hm <- clean_hm[,-c(1, 2)]
+```
+
+```{r}
+# Chargement du package stringr
+library(stringr)
+
+# Modifier directement la première colonne
+clean_hm[,1] <- str_extract(clean_hm[,1], "(?<=_)[^_]+(?=_)")
+```
+
+```{r}
+var.sel <- c( "atom_nm","type_interface_FirstChain","type_interface_SecondChain","distance_max_interChain","first_chain_assym","second_chain_assym")
+
+vIndApp <- sample(1:nrow(clean_hm), 2*nrow(clean_hm)/3)
+vIndVal <- (1:nrow(clean_hm))[-vIndApp]
+App <- data.frame(clean_hm[vIndApp,])
+Val <- data.frame(clean_hm[vIndVal,])
+
+```
+
+```{r}
+# Charger le package rpart
+library(rpart)
+library(rpart.plot)
+library(caret)
+
+```
+
+```{r}
+str(App)
+length(App$first_chain_assym)
+length(App$second_chain_assym)
+length(App$atom_nm)
+length(App$type_interface_FirstChain)
+length(App$type_interface_SecondChain)
+length(App$distance_max_interChain)
+```
+
+
+
+```{r}
+App[var.sel[-which(var.sel == "distance_max_interChain")]] <- lapply(App[var.sel[-which(var.sel == "distance_max_interChain")]], as.factor)
+
+sup_superflux <- App[,-c(7, 8)]
+sup_superflux_val <- Val[,-c(7, 8)]
+
+fit.cart.reg <- rpart(distance_max_interChain ~ ., control = rpart.control(minsplit = 7, maxdepth = 30), data = sup_superflux)
+
+# Générer le graphique
+prp(fit.cart.reg, type = 0, extra = 1)
+```
+
+```{r}
+fitCart.reg.pred.train <- predict(fit.cart.reg, newdata = App)
+
+plot(App[, "distance_max_interChain"], fitCart.reg.pred.train,
+     xlab = 'yobs', ylab = 'ypred', main = "on train set")
+
+postResample(pred = fitCart.reg.pred.train, obs = sup_superflux[, "distance_max_interChain"])
+
+```
+
+```{r}
+fitCart.reg.pred.test <- predict(fit.cart.reg, newdata = sup_superflux_val)
+
+plot(sup_superflux_val[, "distance_max_interChain"], fitCart.reg.pred.test,
+     xlab = 'yobs', ylab = 'ypred', main = "on test set")
+
+postResample(pred = fitCart.reg.pred.test, obs = sup_superflux_val[, "distance_max_interChain"])
+```
+
+```{r}
+sessionInfo()
+```
+

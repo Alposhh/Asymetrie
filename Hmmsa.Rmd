@@ -1,0 +1,392 @@
+---
+title: "Hmmsa"
+author: "balam"
+date: "2024-01-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(FactoMineR)
+```
+
+```{r}
+Hmmsa <- read.csv("/home/alper/Documents/Asymetrie/DATA/final_result.csv")
+
+# Remplacer les cellules vides par NA dans un dataframe existant
+Hmmsa[Hmmsa == ""] <- NA
+Hmmsa[Hmmsa == "-"] <- NA
+
+clean_hm <- na.omit(Hmmsa)
+```
+
+
+```{r}
+helix <- c("A","a","V","W")
+beta <- c("L","M","N","P","X")
+loop <- c("B","C","D","E","F","G","H","I","J","K","O","Q","R","S","T","U","Y","Z")
+
+# Fonction pour déterminer la valeur de la colonne 9
+get_col9_value <- function(val1, val2) {
+  if (val1 == val2) {
+    return(0)
+  } else {
+    vecteur1 <- ifelse(val1 %in% helix, "helix", ifelse(val1 %in% beta, "beta", "loop"))
+    vecteur2 <- ifelse(val2 %in% helix, "helix", ifelse(val2 %in% beta, "beta", "loop"))
+    
+    if (vecteur1 != vecteur2) {
+      return(2)
+    } else {
+      return(1)
+    }
+  }
+}
+
+# Appliquer la fonction au dataframe
+clean_hm$Chgm <- mapply(get_col9_value, clean_hm$first_chain_assym, clean_hm$second_chain_assym)
+
+table(clean_hm$Chgm)
+
+# Calcul de la moyenne pour le changement de structure 
+mean(subset(clean_hm, Chgm == 2)$distance_max_interChain)
+mean(subset(clean_hm, Chgm == 1)$distance_max_interChain)
+mean(subset(clean_hm, Chgm == 0)$distance_max_interChain)
+t.test(subset(clean_hm, Chgm == 2)$distance_max_interChain, subset(clean_hm, Chgm == 1)$distance_max_interChain )
+```
+
+
+```{r}
+#first_chain_asym
+
+# Dictionnaire de lettres
+lettres <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a")
+
+# Initialiser une liste pour stocker les résultats
+resultats_list <- list()
+
+# Boucle sur les lettres
+for (lettre in lettres) {
+  # Filtrer les données pour la lettre actuelle dans 'clean_hm'
+  subset_data <- clean_hm[clean_hm$first_chain_assym == lettre, ]
+
+  # Compter les occurrences dans chaque plage de valeurs pour 'clean_hm'
+  count_inf_0.3 <- sum(subset_data$distance_max_interChain < 0.3)
+  count_between_0.3_and_0.7 <- sum(subset_data$distance_max_interChain > 0.3 & subset_data$distance_max_interChain < 0.7)
+  count_between_0.7_and_1 <- sum(subset_data$distance_max_interChain > 0.7 & subset_data$distance_max_interChain < 1)
+  count_gt_1 <- sum(subset_data$distance_max_interChain > 1)
+
+  # Créer une ligne de données pour la lettre actuelle
+  ligne_resultat <- data.frame(
+    hmmsa = lettre,
+    inf_0.3 = count_inf_0.3,
+    between_0.3_and_0.7 = count_between_0.3_and_0.7,
+    between_0.7_and_1 = count_between_0.7_and_1,
+    gt_1 = count_gt_1
+  )
+
+  # Ajouter la ligne à la liste des résultats
+  resultats_list[[lettre]] <- ligne_resultat
+}
+
+# Combiner toutes les lignes en un seul dataframe
+resultats_dataframe <- do.call(rbind, resultats_list)
+```
+
+```{r}
+#second_chain_asym
+
+# Dictionnaire de lettres
+lettres <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a")
+
+# Initialiser une liste pour stocker les résultats
+resultats_list2 <- list()
+
+# Boucle sur les lettres
+for (lettre in lettres) {
+  # Filtrer les données pour la lettre actuelle dans 'clean_hm'
+  subset_data2 <- clean_hm[clean_hm$second_chain_assym == lettre, ]
+
+  # Compter les occurrences dans chaque plage de valeurs pour 'clean_hm'
+  count_inf_0.3 <- sum(subset_data2$distance_max_interChain < 0.3)
+  count_between_0.3_and_0.7 <- sum(subset_data2$distance_max_interChain > 0.3 & subset_data2$distance_max_interChain < 0.7)
+  count_between_0.7_and_1 <- sum(subset_data2$distance_max_interChain > 0.7 & subset_data2$distance_max_interChain < 1)
+  count_gt_1 <- sum(subset_data2$distance_max_interChain > 1)
+
+  # Créer une ligne de données pour la lettre actuelle
+  ligne_resultat2 <- data.frame(
+    hmmsa = lettre,
+    inf_0.3 = count_inf_0.3,
+    between_0.3_and_0.7 = count_between_0.3_and_0.7,
+    between_0.7_and_1 = count_between_0.7_and_1,
+    gt_1 = count_gt_1
+  )
+
+  # Ajouter la ligne à la liste des résultats
+  resultats_list2[[lettre]] <- ligne_resultat2
+}
+
+# Combiner toutes les lignes en un seul dataframe
+resultats_dataframe2 <- do.call(rbind, resultats_list2)
+```
+
+```{r}
+resultats_dataframe <- resultats_dataframe[,-1]
+resultats_dataframe2 <- resultats_dataframe2[,-1]
+```
+
+
+```{r}
+library(ggplot2)
+
+# Convertir le tableau en un format de données adapté à ggplot2
+dtf <- as.data.frame(as.table(as.matrix(resultats_dataframe)))
+
+# Renommer les colonnes pour les rendre compatibles avec ggplot2
+colnames(dtf) <- c("lettre", "asymetrie", "Observations")
+
+# Définir un code couleur personnalisé
+custom_colors <- c("inf_0.3" = "khaki", 
+                   "between_0.3_and_0.7" = "gold3", 
+                   "between_0.7_and_1" = "darkgoldenrod4",
+                   "gt_1" = "darkorange4")
+
+
+# Créer le graphique en utilisant ggplot2
+ggplot(dtf, aes(x = lettre, y = Observations, fill = asymetrie)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Asymetrie des lettres",
+       x = "lettre",
+       y = "Nombre d'observations") +
+  scale_fill_manual(values = custom_colors) +  
+  theme_minimal()
+```
+```{r}
+library(ggplot2)
+
+# Convertir le tableau en un format de données adapté à ggplot2
+dtf2 <- as.data.frame(as.table(as.matrix(resultats_dataframe2)))
+
+# Renommer les colonnes pour les rendre compatibles avec ggplot2
+colnames(dtf2) <- c("lettre", "asymetrie", "Observations")
+
+# Définir un code couleur personnalisé
+custom_colors <- c("inf_0.3" = "khaki", 
+                   "between_0.3_and_0.7" = "gold3", 
+                   "between_0.7_and_1" = "darkgoldenrod4",
+                   "gt_1" = "darkorange4")
+
+
+# Créer le graphique en utilisant ggplot2
+ggplot(dtf, aes(x = lettre, y = Observations, fill = asymetrie)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Asymetrie des lettres",
+       x = "lettre",
+       y = "Nombre d'observations") +
+  scale_fill_manual(values = custom_colors) +  
+  theme_minimal()
+```
+```{r}
+# Effectuer le test du chi2
+chi2_result <- chisq.test(resultats_dataframe)
+
+# Afficher les résultats du test
+print(chi2_result)
+
+# Visualiser les résidus du chi2
+residuals <- as.data.frame(chi2_result$residuals)
+rownames(residuals) <- rownames(resultats_dataframe)
+
+# Créer un graphique des résidus
+barplot(t(residuals), beside = TRUE, col = custom_colors,
+        main = "Résidus du Test du Chi2",
+        xlab = "lettre",
+        ylab = "Résidus",
+        legend.text = TRUE,
+        args.legend = list(title = "asymétrie"))
+
+# Ajouter une ligne horizontale pour la référence à 0
+abline(h = 0, lty = 2, col = "black")
+```
+```{r}
+# Effectuer le test du chi2
+chi2_result2 <- chisq.test(resultats_dataframe2)
+
+# Afficher les résultats du test
+print(chi2_result2)
+
+# Visualiser les résidus du chi2
+residuals <- as.data.frame(chi2_result2$residuals)
+rownames(residuals) <- rownames(resultats_dataframe2)
+
+# Créer un graphique des résidus
+barplot(t(residuals), beside = TRUE, col = custom_colors,
+        main = "Résidus du Test du Chi2",
+        xlab = "lettre",
+        ylab = "Résidus",
+        legend.text = TRUE,
+        args.legend = list(title = "asymétrie"))
+
+# Ajouter une ligne horizontale pour la référence à 0
+abline(h = 0, lty = 2, col = "black")
+```
+```{r}
+# Effectuer l'analyse factorielle des correspondances
+afc_result <- CA(resultats_dataframe)
+
+# Afficher les résultats
+print(afc_result)
+
+# Visualiser les résultats avec un graphique des points
+plot.CA(afc_result, col.col = "limegreen", col.row = "chocolate")
+```
+```{r}
+# Effectuer l'analyse factorielle des correspondances
+afc_result2 <- CA(resultats_dataframe2)
+
+# Afficher les résultats
+print(afc_result2)
+
+# Visualiser les résultats avec un graphique des points
+plot.CA(afc_result2, col.col = "limegreen", col.row = "chocolate")
+```
+
+```{r}
+library(factoextra)
+
+
+# Effectuer l'analyse factorielle des correspondances
+afc_result <- CA(resultats_dataframe)
+
+# Visualiser les résultats avec un graphique des points
+plot.CA(afc_result, col.col = "limegreen", col.row = "chocolate")
+
+ind_coordinates <- as.data.frame(afc_result$row$coord)
+
+# Calculer la matrice de distance euclidienne entre les individus
+distance_matrix <- dist(ind_coordinates)
+
+# Appliquer la classification ascendante hiérarchique (CAH) à la matrice de distance
+cah_result <- hclust(distance_matrix, method = "ward.D2")
+
+# Afficher le dendrogramme de la CAH
+plot(cah_result, main = "classification des AA")
+
+# Choisissez la méthode de clustering (e.g., "ward.D2")
+method <- "wss"
+
+# Sélectionnez une plage de nombre de clusters (k.min à k.max)
+k.max <- 10
+
+# Utilisez la fonction fviz_nbclust
+nb_clusters <- factoextra::fviz_nbclust(resultats_dataframe, 
+                                        FUNcluster = factoextra::hcut, 
+                                        method = method, 
+                                        k.max = k.max)
+print(nb_clusters)
+
+# Choisissez le nombre de clusters (groupe) que vous avez décidé (par exemple, 4)
+num_clusters <- 4
+
+# Associer chaque acide aminé à son groupe
+cluster_assignments <- cutree(cah_result, k = num_clusters)
+
+# Créer un tableau avec les noms des acides aminés et leur groupe associé
+result_table <- data.frame(AA = rownames(ind_coordinates), 
+                           Groupe = cluster_assignments)
+
+# Afficher le tableau résultant
+print(result_table)
+
+# Créer une liste pour stocker les acides aminés dans chaque groupe
+grouped_aa_list <- vector("list", length = num_clusters)
+
+# Remplir la liste avec les noms des acides aminés dans chaque groupe
+for (i in 1:length(cluster_assignments)) {
+  grouped_aa_list[[cluster_assignments[i]]] <- c(grouped_aa_list[[cluster_assignments[i]]], rownames(ind_coordinates)[i])
+}
+
+# Afficher la liste
+print(grouped_aa_list)
+
+# Ajouter l'information sur les clusters
+ind_coordinates$Cluster <- as.factor(cluster_assignments)
+
+# Visualiser l'AFC avec l'information sur les clusters
+plot(afc_result, 
+     col.row = custom_colors[ind_coordinates$Cluster],
+     col.col = "mistyrose",
+     title = "AFC et classification des Surface")
+```
+
+```{r}
+library(factoextra)
+
+
+# Effectuer l'analyse factorielle des correspondances
+afc_result <- CA(resultats_dataframe2)
+
+# Visualiser les résultats avec un graphique des points
+plot.CA(afc_result, col.col = "limegreen", col.row = "chocolate")
+
+ind_coordinates <- as.data.frame(afc_result$row$coord)
+
+# Calculer la matrice de distance euclidienne entre les individus
+distance_matrix <- dist(ind_coordinates)
+
+# Appliquer la classification ascendante hiérarchique (CAH) à la matrice de distance
+cah_result <- hclust(distance_matrix, method = "ward.D2")
+
+# Afficher le dendrogramme de la CAH
+plot(cah_result, main = "classification des AA")
+
+# Choisissez la méthode de clustering (e.g., "ward.D2")
+method <- "wss"
+
+# Sélectionnez une plage de nombre de clusters (k.min à k.max)
+k.max <- 10
+
+# Utilisez la fonction fviz_nbclust
+nb_clusters <- factoextra::fviz_nbclust(resultats_dataframe2, 
+                                        FUNcluster = factoextra::hcut, 
+                                        method = method, 
+                                        k.max = k.max)
+print(nb_clusters)
+
+# Choisissez le nombre de clusters (groupe) que vous avez décidé (par exemple, 4)
+num_clusters <- 3
+
+# Associer chaque acide aminé à son groupe
+cluster_assignments <- cutree(cah_result, k = num_clusters)
+
+# Créer un tableau avec les noms des acides aminés et leur groupe associé
+result_table <- data.frame(AA = rownames(ind_coordinates), 
+                           Groupe = cluster_assignments)
+
+# Afficher le tableau résultant
+print(result_table)
+
+# Créer une liste pour stocker les acides aminés dans chaque groupe
+grouped_aa_list <- vector("list", length = num_clusters)
+
+# Remplir la liste avec les noms des acides aminés dans chaque groupe
+for (i in 1:length(cluster_assignments)) {
+  grouped_aa_list[[cluster_assignments[i]]] <- c(grouped_aa_list[[cluster_assignments[i]]], rownames(ind_coordinates)[i])
+}
+
+# Afficher la liste
+print(grouped_aa_list)
+
+# Ajouter l'information sur les clusters
+ind_coordinates$Cluster <- as.factor(cluster_assignments)
+
+# Visualiser l'AFC avec l'information sur les clusters
+plot(afc_result, 
+     col.row = custom_colors[ind_coordinates$Cluster],
+     col.col = "mistyrose",
+     title = "AFC et classification des Surface")
+```
+

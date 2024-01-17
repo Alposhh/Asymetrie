@@ -1,0 +1,160 @@
+---
+title: "Distribution des acides aminés"
+author: "Anne Badel"
+format: html
+---
+
+```{r}
+library(ggplot2)
+library(FactoMineR)
+```
+
+## lecture du tableau de contingence
+
+```{r}
+aa_distribution <- read.table("/home/alper/Documents/Asymetrie/DATA/AA_asym.txt", sep = "\t", row.names = 1)
+
+```
+
+## représentation graphique des données d'asymétrie par acide aminé
+
+```{r}
+library(ggplot2)
+
+# Convertir le tableau en un format de données adapté à ggplot2
+dtf <- as.data.frame(as.table(as.matrix(aa_distribution)))
+
+# Renommer les colonnes pour les rendre compatibles avec ggplot2
+colnames(dtf) <- c("AA", "asymetrie", "Observations")
+
+# Définir un code couleur personnalisé
+custom_colors <- c("inf_0.3" = "khaki", 
+                   "between_0.3_and_0.7" = "gold3", 
+                   "between_0.7_and_1" = "darkgoldenrod4",
+                   "gt_1" = "darkorange4")
+
+
+# Créer le graphique en utilisant ggplot2
+occurence_aa <- ggplot(dtf, aes(x = AA, y = Observations, fill = asymetrie)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Asymetrie des acides aminés",
+       x = "type d'acide aminé",
+       y = "Nombre d'observations") +
+  scale_fill_manual(values = custom_colors) +  
+  theme_minimal()
+
+ggsave("occurence_aa.png", occurence_aa, width = 10, height = 6, units = "in")
+```
+
+## test du $\chi^2$ et visualisation
+
+```{r}
+# Effectuer le test du chi2
+chi2_result <- chisq.test(aa_distribution)
+
+# Afficher les résultats du test
+print(chi2_result)
+
+# Visualiser les résidus du chi2
+residuals <- as.data.frame(chi2_result$residuals)
+
+rownames(residuals) <- rownames(aa_distribution)
+
+chisq.test(aa_distribution)$observed
+
+chisq.test(aa_distribution)$residuals^2
+
+# Créer un graphique des résidus
+barplot(t(residuals), beside = TRUE, col = custom_colors,
+        main = "Résidus du Test du Chi2",
+        xlab = "type d'acides aminés",
+        ylab = "Résidus",
+        legend.text = TRUE,
+        args.legend = list(title = "asymétrie"))
+
+# Ajouter une ligne horizontale pour la référence à 0
+abline(h = 0, lty = 2, col = "black")
+```
+
+## Analyse Factorielle des correspondances
+
+```{r}
+# Effectuer l'analyse factorielle des correspondances
+afc_result <- CA(aa_distribution)
+
+# Afficher les résultats
+print(afc_result)
+
+# Visualiser les résultats avec un graphique des points
+plot.CA(afc_result, col.col = "limegreen", col.row = "chocolate")
+```
+
+```{r}
+install.packages("factoextra")
+library(factoextra)
+
+
+# Effectuer l'analyse factorielle des correspondances
+afc_result <- CA(aa_distribution)
+
+# Visualiser les résultats avec un graphique des points
+plot.CA(afc_result, col.col = "limegreen", col.row = "chocolate")
+
+ind_coordinates <- as.data.frame(afc_result$row$coord)
+
+# Calculer la matrice de distance euclidienne entre les individus
+distance_matrix <- dist(ind_coordinates)
+
+# Appliquer la classification ascendante hiérarchique (CAH) à la matrice de distance
+cah_result <- hclust(distance_matrix, method = "ward.D2")
+
+# Afficher le dendrogramme de la CAH
+plot(cah_result, main = "classification des AA")
+
+# Choisissez la méthode de clustering (e.g., "ward.D2")
+method <- "wss"
+
+# Sélectionnez une plage de nombre de clusters (k.min à k.max)
+k.max <- 10
+
+# Utilisez la fonction fviz_nbclust
+nb_clusters <- factoextra::fviz_nbclust(aa_distribution, 
+                                        FUNcluster = factoextra::hcut, 
+                                        method = method, 
+                                        k.max = k.max)
+print(nb_clusters)
+
+# Choisissez le nombre de clusters (groupe) que vous avez décidé (par exemple, 4)
+num_clusters <- 3
+
+# Associer chaque acide aminé à son groupe
+cluster_assignments <- cutree(cah_result, k = num_clusters)
+
+# Créer un tableau avec les noms des acides aminés et leur groupe associé
+result_table <- data.frame(AA = rownames(ind_coordinates), 
+                           Groupe = cluster_assignments)
+
+# Afficher le tableau résultant
+print(result_table)
+
+# Créer une liste pour stocker les acides aminés dans chaque groupe
+grouped_aa_list <- vector("list", length = num_clusters)
+
+# Remplir la liste avec les noms des acides aminés dans chaque groupe
+for (i in 1:length(cluster_assignments)) {
+  grouped_aa_list[[cluster_assignments[i]]] <- c(grouped_aa_list[[cluster_assignments[i]]], rownames(ind_coordinates)[i])
+}
+
+# Afficher la liste
+print(grouped_aa_list)
+
+# Ajouter l'information sur les clusters
+ind_coordinates$Cluster <- as.factor(cluster_assignments)
+
+# Visualiser l'AFC avec l'information sur les clusters
+plot(afc_result, 
+     col.row = custom_colors[ind_coordinates$Cluster],
+     col.col = "mistyrose",
+     title = "AFC et classification des Surface")
+```
+

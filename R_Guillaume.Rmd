@@ -13,15 +13,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 getwd()
-#setwd("/home/alper/Documents/Asymetrie/DATA/DMAX")
+setwd("/home/alper/Documents/Asymetrie/DATA/DMAX")
 #install.packages("ggplot2")
 #install.packages("dplyr")
 #install.packages("stringr")
 ```
 
 ```{r}
-data <- read.table("distMax_alldimers.txt", header = TRUE)
-datab <- read.table("distMax_alldimers_backbone.txt", header = TRUE)
+data <- read.table("/home/alper/Documents/Asymetrie/DATA/DMAX/distMax_alldimers.txt", header = TRUE)
+datab <- read.table("/home/alper/Documents/Asymetrie/DATA/DMAX/distMax_alldimers_backbone.txt", header = TRUE)
 data$LogD <- log(data$distance_max_interChain)
 datab$LogD <- log(datab$distance_max_interChain)
 ```
@@ -29,7 +29,7 @@ datab$LogD <- log(datab$distance_max_interChain)
 
 ```{r}
 # Liste des acides aminés spécifiques.
-acides_amines_specifiques <- c("GLY", "ALA", "ARG","PHE","GLU", "THR", "TYR", "ASN", "LYS", "SER", "ILE", "HIS", "CYS", "LEU", "ARG", "VAL", "ASP", "PRO", "GLN", "TRP")
+acides_amines_specifiques <- c("GLY", "ALA", "ARG","PHE","GLU", "THR", "TYR", "ASN", "LYS", "SER", "ILE", "HIS", "CYS", "LEU", "VAL", "ASP", "PRO", "GLN", "TRP", "MET")
 
 par(mfrow = c(2, 3))
 
@@ -102,9 +102,6 @@ for (i in seq_along(seuil)) {
 
 # Plot the histogram with seuil on the x-axis
 plot(seuil, cbs, type = "h", lwd = 10, col = "blue", main = "Histogram of Counts", xlab = "seuil", ylab = "Count")
-
-
-
 ```
 
 ```{r}
@@ -113,165 +110,243 @@ table(data$Asymetrie)
 ```
 
 ```{r}
-unique(data$name)
-test <- unique(data$name)
+# Initialiser un dataframe vide pour stocker les résultats
+resultats_dataframe <- data.frame()
 
-```
-
-
-```{r}
-# Liste des acides aminés spécifiques que vous souhaitez inclure
-acides_amines_specifiques <- unique(sapply(strsplit(data$atom_nm, "_"), "[[", 2))
-
-# Créez une liste pour stocker les résultats
-resultats_t_test <- list()
-
-# Utilisez une boucle for pour effectuer un test t pour chaque acide aminé spécifique
+# Boucle sur les acides aminés spécifiques
 for (amino_acid in acides_amines_specifiques) {
-  x <- data$distance_max_interChain[grepl(paste0("_", amino_acid, "_"), data$atom_nm)]
-  y <- datab$distance_max_interChain[grepl(paste0("_", amino_acid, "_"), datab$atom_nm)]
-  xdf <- as.data.frame(x)
-  ydf <- as.data.frame(y)
-  
-  # Effectuez le test t et stockez le résultat dans la liste
-  resultats_t_test[[amino_acid]] <- t.test(xdf, ydf)
+  # Filtrer les données pour l'acide aminé actuel dans 'data'
+  subset_data <- data[grepl(paste0("_", amino_acid, "_"), data$atom_nm), ]
+
+  # Filtrer les données pour l'acide aminé actuel dans 'datab'
+  subset_datab <- datab[grepl(paste0("_", amino_acid, "_"), datab$atom_nm), ]
+
+  # Compter les occurrences dans chaque plage de valeurs pour 'data'
+  count_inf_0.3 <- sum(subset_data$distance_max_interChain < 0.3)
+  count_between_0.3_and_0.7 <- sum(subset_data$distance_max_interChain > 0.3 & subset_data$distance_max_interChain < 0.7)
+  count_between_0.7_and_1 <- sum(subset_data$distance_max_interChain > 0.7 & subset_data$distance_max_interChain < 1)
+  count_gt_1 <- sum(subset_data$distance_max_interChain > 1)
+
+  # Créer une ligne de données pour l'acide aminé actuel
+  ligne_resultat <- data.frame(
+    amino_acid = amino_acid,
+    inf_0.3 = count_inf_0.3,
+    between_0.3_and_0.7 = count_between_0.3_and_0.7,
+    between_0.7_and_1 = count_between_0.7_and_1,
+    gt_1 = count_gt_1
+  )
+
+  # Ajouter la ligne au dataframe résultant
+  resultats_dataframe <- rbind(resultats_dataframe, ligne_resultat)
 }
 
-# Accédez aux résultats individuels en utilisant les noms des acides aminés comme clés
-for (amino_acid in acides_amines_specifiques) {
-  print(paste("Test t pour", amino_acid))
-  print(resultats_t_test[[amino_acid]])
+sum(resultats_dataframe$inf_0.3)
+```
+
+```{r}
+# Créer une nouvelle colonne en combinant les valeurs de colonne1 et colonne2
+data$zone_combiner <- paste(data$type_interface_FirstChain, data$type_interface_SecondChain, sep = "-")
+```
+
+
+```{r}
+# Dictionnaire
+dictionnaire <- c(
+  "surface-surface", "interior-interior", "rim-rim",
+  "rim-interior", "surface-interior", "support-support",
+  "interior-surface", "core-rim", "core-core",
+  "interior-rim", "support-core", "rim-core",
+  "support-interior", "core-surface", "rim-surface",
+  "surface-rim", "surface-core", "interior-support",
+  "core-support", "support-surface", "surface-support",
+  "rim-support", "support-rim", "core-interior", "interior-core"
+)
+
+# Initialiser une matrice pour le tableau de comptage
+tableau_comptage <- matrix(0, nrow = length(dictionnaire), ncol = 4, dimnames = list(dictionnaire, c("inf_0.3", "between_0.3_and_0.7", "between_0.7_and_1", "gt_1")))
+
+# Parcourir les lignes du tableau de données
+for (i in seq_len(nrow(data))) {
+  # Vérifier les conditions et incrémenter le compteur correspondant
+  if (data$distance_max_interChain[i] < 0.3) {
+    tableau_comptage[data$zone_combiner[i], "inf_0.3"] <- tableau_comptage[data$zone_combiner[i], "inf_0.3"] + 1
+  } else if (data$distance_max_interChain[i] > 0.3 & data$distance_max_interChain[i] < 0.7) {
+    tableau_comptage[data$zone_combiner[i], "between_0.3_and_0.7"] <- tableau_comptage[data$zone_combiner[i], "between_0.3_and_0.7"] + 1
+  } else if (data$distance_max_interChain[i] > 0.7 & data$distance_max_interChain[i] < 1) {
+    tableau_comptage[data$zone_combiner[i], "between_0.7_and_1"] <- tableau_comptage[data$zone_combiner[i], "between_0.7_and_1"] + 1
+  } else if (data$distance_max_interChain[i] > 1) {
+    tableau_comptage[data$zone_combiner[i], "gt_1"] <- tableau_comptage[data$zone_combiner[i], "gt_1"] + 1
+  }
 }
 
-```
-
-
-
-
-
-
-```{r}#
-
-# Convertir la variable "interior" en numérique (0/1)
-data$first_chain <- ifelse(data$type_interface_FirstChain == "surface", 1, 0)
-
-# Convertir la variable "surface" en numérique (0/1)
-data$second_chain <- ifelse(data$type_interface_SecondChain == "surface", 1, 0)
-
-data$combined_chain <- ifelse(data$first_chain == 1 & data$second_chain == 1, 1, 0)
-
-data$combined_chain_0 <- ifelse(data$first_chain == 0 & data$second_chain == 0, 1, 0)
-
-data_cor_final <- data.frame(
-  distance_max_interChain = data$distance_max_interChain,
-  first_chain = data$first_chain,
-  second_chain = data$second_chain,
-  combined_chain = data$combined_chain,
-  combined_chain_0 = data$combined_chain_0
-)[grepl("ALA", data$atom_nm), ]
-
-t.test(data_cor_final$distance_max_interChain, data_cor_final$combined_chain)
-t.test(data_cor_final$distance_max_interChain, data_cor_final$combined_chain_0)
-
-
-```
-
-```{r}#
-# Convertir la variable "interior" en numérique (0/1)
-datab$first_chain <- ifelse(data$type_interface_FirstChain == "surface", 1, 0)
-
-# Convertir la variable "surface" en numérique (0/1)
-datab$second_chain <- ifelse(data$type_interface_SecondChain == "surface", 1, 0)
-
-datab$combined_chain <- ifelse(data$first_chain == 1 & data$second_chain == 1, 1, 0)
-
-datab$combined_chain_0 <- ifelse(data$first_chain == 0 & data$second_chain == 0, 1, 0)
-
-datab_cor_final <- data.frame(
-  distance_max_interChain = datab$distance_max_interChain,
-  first_chain = datab$first_chain,
-  second_chain = datab$second_chain,
-  combined_chain = datab$combined_chain,
-  combined_chain_0 = datab$combined_chain_0
-)[grepl("ALA", datab$atom_nm), ]
-
-t.test(datab_cor_final$distance_max_interChain, datab_cor_final$combined_chain)
-t.test(datab_cor_final$distance_max_interChain, datab_cor_final$combined_chain_0)
-
-
-```
-
-```{r}
-unique(data$type_interface_FirstChain)
-unique(data$type_interface_SecondChain)
-```
-
-```{r}
-model_linear = lm(data$distance_max_interChain ~ data$type_interface_FirstChain, data = data)
-summary(model_linear)
+# Convertir la matrice en data frame pour l'affichage
+tableau_comptage_df <- as.data.frame(tableau_comptage)
 ```
 
 ```{r}
 library(ggplot2)
-par(mfrow = c(1, 3))
-ggplot(data, aes(x = type_interface_FirstChain, y = distance_max_interChain, group = 1)) + 
-  geom_line() + geom_point()
-ggplot(data, aes(x = type_interface_SecondChain, y = distance_max_interChain, group = 1)) + 
-  geom_line() + geom_point()
-ggplot(data, aes(x = zone_combiner, y = distance_max_interChain, group = 1)) + 
-  geom_line() + 
-  geom_point() +
+library(FactoMineR)
+
+
+
+# Définir un code couleur personnalisé
+custom_colors <- c("inf_0.3" = "khaki", 
+                   "between_0.3_and_0.7" = "gold3", 
+                   "between_0.7_and_1" = "darkgoldenrod4",
+                   "gt_1" = "darkorange4")
+custom_colors_afc <- c("chartreuse", "orange", "purple", "cyan")
+
+# Convertir le tableau en un format de données adapté à ggplot2
+dtf <- as.data.frame(as.table(as.matrix(tableau_comptage_df)))
+
+# Renommer les colonnes pour les rendre compatibles avec ggplot2
+colnames(dtf) <- c("zone", "asymetrie", "Observations")
+
+# Créer le graphique en utilisant ggplot2
+AA_barplot <- ggplot(dtf, aes(x = zone, y = Observations, fill = asymetrie)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Asymetrie des acides aminés",
+       x = "zone",
+       y = "Nombre d'observations") +
+  scale_fill_manual(values = custom_colors) +  
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+AA_barplot
 
+# Effectuer le test du chi2
+chi2_result <- chisq.test(tableau_comptage_df)
+
+# Afficher les résultats du test
+print(chi2_result)
+
+# Visualiser les résidus du chi2
+residuals <- as.data.frame(chi2_result$residuals)
+rownames(residuals) <- rownames(tableau_comptage_df)
+
+# Créer un graphique des résidus
+barplot(t(residuals), beside = TRUE, col = custom_colors,
+        main = "Résidus du Test du Chi2",
+        xlab = "Zone",
+        ylab = "Résidus",
+        names.arg = rep("", times = 25),
+        legend.text = TRUE,
+        args.legend = list(title = "asymétrie"))
+
+# Ajouter une ligne horizontale pour la référence à 0
+abline(h = 0, lty = 2, col = "black")
+
+# Ajouter des étiquettes en diagonale
+text(x = barplot(t(residuals), beside = TRUE, 
+                 col = custom_colors, plot = FALSE)[1, ] + 0.5,
+     y = par("usr")[3] - 0.5, 
+     labels = rownames(residuals),
+     srt = 45, adj = 1, xpd = TRUE, cex = 1)
 ```
 
-
 ```{r}
-model_linearb = lm(datab$distance_max_interChain ~ datab$type_interface_SecondChain, data = datab)
-summary(model_linearb)
-```
+install.packages("factoextra")
+library(factoextra)
 
-```{r}
-data$zone_combiner <- paste(data$type_interface_FirstChain, data$type_interface_SecondChain, sep = "-")
-```
 
-```{r}
-model_linearc = lm(data$distance_max_interChain ~ data$zone_combiner, data = data)
-summary(model_linearc)
-```
+# Effectuer l'analyse factorielle des correspondances
+afc_result <- CA(tableau_comptage_df)
 
-```{r}
-# Créer une liste pour stocker les sous-dataframes pour chaque acide aminé
-liste_acides_amines <- list()
+# Visualiser les résultats avec un graphique des points
+plot.CA(afc_result, col.col = "limegreen", col.row = "chocolate")
 
-# Parcourir la liste des acides aminés spécifiques
-for (acide in acides_amines_specifiques) {
-  # Utiliser grepl pour filtrer les lignes pour l'acide aminé actuel
-  sous_dataframe <- data[grepl(acide, data$atom_nm), ]
-  
-  # Stocker le sous-dataframe dans la liste
-  liste_acides_amines[[acide]] <- sous_dataframe
-  
-  # Sauvegarder le sous-dataframe dans un fichier CSV
-  write.csv(sous_dataframe, file = paste0("acide_", acide, ".csv"), row.names = FALSE)
+ind_coordinates <- as.data.frame(afc_result$row$coord)
+
+# Calculer la matrice de distance euclidienne entre les individus
+distance_matrix <- dist(ind_coordinates)
+
+# Appliquer la classification ascendante hiérarchique (CAH) à la matrice de distance
+cah_result <- hclust(distance_matrix, method = "ward.D2")
+
+# Afficher le dendrogramme de la CAH
+plot(cah_result, main = "classification des AA")
+
+# Choisissez la méthode de clustering (e.g., "ward.D2")
+method <- "wss"
+
+# Sélectionnez une plage de nombre de clusters (k.min à k.max)
+k.max <- 10
+
+# Utilisez la fonction fviz_nbclust
+nb_clusters <- factoextra::fviz_nbclust(tableau_comptage_df, 
+                                        FUNcluster = factoextra::hcut, 
+                                        method = method, 
+                                        k.max = k.max)
+print(nb_clusters)
+
+# Choisissez le nombre de clusters (groupe) que vous avez décidé (par exemple, 4)
+num_clusters <- 3
+
+# Associer chaque acide aminé à son groupe
+cluster_assignments <- cutree(cah_result, k = num_clusters)
+
+# Créer un tableau avec les noms des acides aminés et leur groupe associé
+result_table <- data.frame(AA = rownames(ind_coordinates), 
+                           Groupe = cluster_assignments)
+
+# Afficher le tableau résultant
+print(result_table)
+
+# Créer une liste pour stocker les acides aminés dans chaque groupe
+grouped_aa_list <- vector("list", length = num_clusters)
+
+# Remplir la liste avec les noms des acides aminés dans chaque groupe
+for (i in 1:length(cluster_assignments)) {
+  grouped_aa_list[[cluster_assignments[i]]] <- c(grouped_aa_list[[cluster_assignments[i]]], rownames(ind_coordinates)[i])
 }
 
-# Vous pouvez maintenant accéder à chaque sous-dataframe par son nom (par exemple, liste_acides_amines$GLY)
+# Afficher la liste
+print(grouped_aa_list)
 
+# Ajouter l'information sur les clusters
+ind_coordinates$Cluster <- as.factor(cluster_assignments)
+
+# Visualiser l'AFC avec l'information sur les clusters
+plot(afc_result, 
+     col.row = custom_colors_afc[ind_coordinates$Cluster],
+     col.col = "mistyrose",
+     title = "AFC et classification des Surface")
 ```
 
 ```{r}
-model_linearc = lm(liste_acides_amines$GLY$distance_max_interChain ~ liste_acides_amines$GLY$zone_combiner, data = liste_acides_amines$GLY)
-summary(model_linearc)
+# Charger le package ggplot2
+library(ggplot2)
+
+# Créer un histogramme pour chaque acide aminé
+ggplot(resultats_dataframe, aes(x = amino_acid)) +
+  geom_bar(aes(y = inf_0.3), fill = "blue", stat = "identity", position = "dodge") +
+  geom_bar(aes(y = between_0.3_and_0.7), fill = "green", stat = "identity", position = "dodge") +
+  geom_bar(aes(y = between_0.7_and_1), fill = "orange", stat = "identity", position = "dodge") +
+  geom_bar(aes(y = gt_1), fill = "red", stat = "identity", position = "dodge") +
+  labs(title = "Histogramme des valeurs par acide aminé",
+       x = "Acide aminé",
+       y = "Nombre d'occurrences") +
+  theme_minimal()
 ```
 
 ```{r}
-summary(aov(data$distance_max_interChain~data$type_interface_FirstChain*data$type_interface_SecondChain))
+# Créer une matrice de contingence à partir du dataframe
+contingence_matrix <- matrix(c(resultats_dataframe$inf_0.3, resultats_dataframe$between_0.3_and_0.7, resultats_dataframe$between_0.7_and_1, resultats_dataframe$gt_1), ncol = 4)
+
+# Effectuer le test du chi2
+test_chi2 <- chisq.test(contingence_matrix)
+
+# Afficher les résultats du test
+print(test_chi2)
+
+chisq.test(resultats_dataframe)
+
+chisq.test(resultats_dataframe)$residuals
+
+chisq.test(resultats_dataframe)$observed
+
+chisq.test(resultats_dataframe)$residuals^2
 ```
 
-```{r}
-summary(aov(liste_acides_amines$PHE$distance_max_interChain ~ liste_acides_amines$PHE$type_interface_FirstChain * liste_acides_amines$PHE$type_interface_SecondChain))
 
-```
 
 

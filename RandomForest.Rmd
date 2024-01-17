@@ -1,0 +1,93 @@
+---
+title: "random_forest"
+author: "balam"
+date: "2024-01-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Hmmsa <- read.csv("/home/alper/Documents/Asymetrie/DATA/final_result.csv")
+
+# Remplacer les cellules vides par NA dans un dataframe existant
+Hmmsa[Hmmsa == ""] <- NA
+Hmmsa[Hmmsa == "-"] <- NA
+
+clean_hm <- na.omit(Hmmsa)
+```
+
+```{r}
+clean_hm <- clean_hm[,-c(1, 2)]
+
+# Chargement du package stringr
+library(stringr)
+
+# Modifier directement la première colonne
+clean_hm[,1] <- str_extract(clean_hm[,1], "(?<=_)[^_]+(?=_)")
+```
+
+```{r}
+vIndApp <- sample(1:nrow(clean_hm), 2*nrow(clean_hm)/3)
+vIndVal <- (1:nrow(clean_hm))[-vIndApp]
+App <- data.frame(clean_hm[vIndApp,])
+Val <- data.frame(clean_hm[vIndVal,])
+```
+
+```{r}
+var.sel <- c( "atom_nm","type_interface_FirstChain","type_interface_SecondChain","distance_max_interChain","first_chain_assym","second_chain_assym")
+
+App[var.sel[-which(var.sel == "distance_max_interChain")]] <- lapply(App[var.sel[-which(var.sel == "distance_max_interChain")]], as.factor)
+
+Val[var.sel[-which(var.sel == "distance_max_interChain")]] <- lapply(Val[var.sel[-which(var.sel == "distance_max_interChain")]], as.factor)
+```
+
+```{r}
+str(App)
+str(Val)
+```
+
+```{r}
+library(randomForest)
+library(caret)
+```
+
+```{r}
+rf_model <- randomForest(distance_max_interChain ~ ., data = App, ntree = 1000)
+```
+
+```{r}
+importance <- importance(rf_model)
+barplot(importance, main = "Importance des Variables dans le Random Forest", las = 2)
+```
+
+```{r}
+# Prédictions sur l'ensemble de test
+predictions <- predict(rf_model, App)
+
+# Calculer MSE et R²
+mse <- mean((predictions - App$distance_max_interChain)^2)
+r_squared <- cor(predictions, App$distance_max_interChain)^2
+
+print(paste("Mean Squared Error:", mse))
+print(paste("R-squared:", r_squared))
+
+```
+
+```{r}
+predictions_val <- predict(rf_model, Val)
+
+mse_val <- mean((predictions_val - Val$distance_max_interChain)^2)
+r_squared_val <- cor(predictions_val, Val$distance_max_interChain)^2
+
+print(paste("Mean Squared Error:", mse_val))
+print(paste("R-squared:", r_squared_val))
+
+```
+
+```{r}
+
+```
+
